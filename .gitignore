@@ -6,3 +6,4 @@ vendor
 venv
 Gemfile.lock
 .env
+.bundle
