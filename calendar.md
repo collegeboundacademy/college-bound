@@ -124,7 +124,7 @@ permalink: /calendar
       const top = document.createElement('div');
       top.className = 'flex justify-between items-start';
   const dnum = document.createElement('div'); dnum.className='text-sm font-medium text-slate-100'; dnum.textContent = day;
-  const badge = document.createElement('div'); badge.className='text-xs text-white bg-indigo-400 rounded-full px-2 py-0.5 hidden';
+  const badge = document.createElement('div'); badge.className='text-xs text-white bg-orange-400 rounded-full px-2 py-0.5 hidden';
       top.appendChild(dnum); top.appendChild(badge);
       cell.appendChild(top);
 

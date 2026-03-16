@@ -13,13 +13,13 @@ layout: default
       <ul class="space-y-2">
         {% for p in nb_posts %}
           <li>
-            <a href="{{ p.url | relative_url }}" class="text-indigo-400 hover:underline">{{ p.title }}</a>
+            <a href="{{ p.url | relative_url }}" class="text-orange-400 hover:underline">{{ p.title }}</a>
             <small class="text-slate-400"> — post</small>
           </li>
         {% endfor %}
         {% for f in nb_static %}
           <li>
-            <a href="{{ f.path | relative_url }}" class="text-indigo-400 hover:underline">{{ f.path | split: '/' | last }}</a>
+            <a href="{{ f.path | relative_url }}" class="text-orange-400 hover:underline">{{ f.path | split: '/' | last }}</a>
             <small class="text-slate-400"> — file</small>
           </li>
         {% endfor %}
@@ -31,12 +31,12 @@ layout: default
   <div class="grid gap-6">
     {% for page in site.posts %}
     <div
-      class="group relative overflow-hidden rounded-xl border border-slate-700 bg-slate-800 p-6 shadow-sm transition-all hover:shadow-md hover:border-slate-600 focus-within:ring-2 focus-within:ring-indigo-500 focus-within:ring-offset-2"
+      class="group relative overflow-hidden rounded-xl border border-slate-700 bg-slate-800 p-6 shadow-sm transition-all hover:shadow-md hover:border-slate-600 focus-within:ring-2 focus-within:ring-orange-500 focus-within:ring-offset-2"
     >
       <h2 class="text-xl font-semibold leading-tight text-slate-100">
         <a
           href="{{ page.url | relative_url }}"
-          class="after:absolute after:inset-0 hover:text-indigo-400 transition-colors"
+          class="after:absolute after:inset-0 hover:text-orange-400 transition-colors"
         >
           {{ page.title }}
         </a>
