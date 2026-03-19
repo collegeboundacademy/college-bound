@@ -1,5 +1,4 @@
 ---
-
 layout: default
 feedback: false
 hide: true
@@ -7,52 +6,40 @@ title: College Bound
 description: Gateway to College Bound's Vast Resources
 ---
 
-<div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-8">
-	<section class="mb-12">
-		<h2 class="text-2xl font-bold text-slate-100 mb-4">Resources by Grade</h2>
+<link rel="stylesheet" href="{{ '/assets/css/home.css' | relative_url }}">
 
-		<!-- Responsive 4-column grid for grades 9-12 -->
-		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-			<!-- Grade 9 -->
-			<a href="{{ '/grades/9/' | relative_url }}" class="block bg-slate-800 border border-slate-700 rounded-lg p-6 shadow-sm hover:shadow-md transition group">
-				<div class="flex items-start justify-between">
-					<h3 class="text-xl font-semibold text-slate-100 mb-2">9th Grade</h3>
-					<!-- Portrait placeholder (teacher/advisor) -->
-					<div class="w-12 h-12 rounded-full bg-slate-700 ml-4 flex-shrink-0" aria-hidden="true"></div>
-				</div>
-				<p class="text-slate-300 mb-4">Foundational planning: study habits, course selection, and goal setting.</p>
-				<span class="inline-block px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">Explore 9th</span>
-			</a>
+<div class="hero-shell">
+	<!-- HERO ANIMATION -->
+	<section class="flex flex-col items-center justify-center gap-20 py-20 select-none">
+		<div class="logo-wrap drop-shadow-2xl">
+			<div class="glow-burst"></div>
 
-			<!-- Grade 10 -->
-			<a href="{{ '/grades/10/' | relative_url }}" class="block bg-slate-800 border border-slate-700 rounded-lg p-6 shadow-sm hover:shadow-md transition group">
-				<div class="flex items-start justify-between">
-					<h3 class="text-xl font-semibold text-slate-100 mb-2">10th Grade</h3>
-					<div class="w-12 h-12 rounded-full bg-slate-700 ml-4 flex-shrink-0" aria-hidden="true"></div>
-				</div>
-				<p class="text-slate-300 mb-4">Skill-building and early college prep: testing and extracurriculars.</p>
-				<span class="inline-block px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">Explore 10th</span>
-			</a>
+			<svg viewBox="0 0 320 320" class="w-24 sm:w-28 md:w-32 lg:w-36" aria-label="College Bound logo">
+				<circle cx="160" cy="160" r="138" fill="#ffffff" stroke="#111" stroke-width="6"></circle>
+				<path d="M 218 63 A 115 115 0 1 0 218 257" fill="none" stroke="#c62828" stroke-width="42" stroke-linecap="round"></path>
+				<path d="M 216 87 A 88 88 0 1 0 216 233" fill="none" stroke="#f0b429" stroke-width="18" stroke-linecap="round"></path>
+				<circle cx="160" cy="160" r="68" fill="#fff" stroke="#111" stroke-width="4"></circle>
+				<polygon points="160,105 210,128 160,151 110,128" fill="#111"></polygon>
+				<rect x="145" y="150" width="30" height="42" rx="6" fill="#111"></rect>
+			</svg>
+		</div>
 
-			<!-- Grade 11 -->
-			<a href="{{ '/grades/11/' | relative_url }}" class="block bg-slate-800 border border-slate-700 rounded-lg p-6 shadow-sm hover:shadow-md transition group">
-				<div class="flex items-start justify-between">
-					<h3 class="text-xl font-semibold text-slate-100 mb-2">11th Grade</h3>
-					<div class="w-12 h-12 rounded-full bg-slate-700 ml-4 flex-shrink-0" aria-hidden="true"></div>
-				</div>
-				<p class="text-slate-300 mb-4">Intensive prep: standardized tests, core coursework, and college research.</p>
-				<span class="inline-block px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">Explore 11th</span>
-			</a>
-
-			<!-- Grade 12 -->
-			<a href="{{ '/grades/12/' | relative_url }}" class="block bg-slate-800 border border-slate-700 rounded-lg p-6 shadow-sm hover:shadow-md transition group">
-				<div class="flex items-start justify-between">
-					<h3 class="text-xl font-semibold text-slate-100 mb-2">12th Grade</h3>
-					<div class="w-12 h-12 rounded-full bg-slate-700 ml-4 flex-shrink-0" aria-hidden="true"></div>
-				</div>
-				<p class="text-slate-300 mb-4">Applications, scholarships, and next-step planning for college transition.</p>
-				<span class="inline-block px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700">Explore 12th</span>
-			</a>
+		<div class="typed text-base sm:text-xl md:text-2xl font-extrabold tracking-[0.05em] text-white text-center">
+			WELCOME TO COLLEGE BOUND!
 		</div>
 	</section>
+
+	<!-- RESOURCES SECTION -->
+	<div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
+		<section class="mb-12">
+			<h2 class="text-2xl font-bold text-slate-800 mb-6 text-center">Resources by Grade</h2>
+
+			<div class="grade-square-grid" aria-label="Grade classes">
+				<a class="grade-square-card" href="{{ '/grades/9/' | relative_url }}">9th</a>
+				<a class="grade-square-card" href="{{ '/grades/10/' | relative_url }}">10th</a>
+				<a class="grade-square-card" href="{{ '/grades/11/' | relative_url }}">11th</a>
+				<a class="grade-square-card" href="{{ '/grades/12/' | relative_url }}">12th</a>
+			</div>
+		</section>
+	</div>
 </div>
