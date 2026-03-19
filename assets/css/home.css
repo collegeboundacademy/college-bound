@@ -1,0 +1,193 @@
+@keyframes spinGrow {
+	0% {
+		transform: scale(0.18) rotate(0deg);
+		opacity: 0;
+	}
+	15% {
+		opacity: 1;
+	}
+	100% {
+		transform: scale(2.2) rotate(1800deg);
+		opacity: 1;
+	}
+}
+
+@keyframes typing {
+	from {
+		width: 0ch;
+	}
+	to {
+		width: 30ch;
+	}
+}
+
+@keyframes blink {
+	50% {
+		border-color: transparent;
+	}
+}
+
+@keyframes glowBurst {
+	0% {
+		transform: translate(-50%, -50%) scale(0.6);
+		opacity: 0;
+	}
+	45% {
+		opacity: 0.55;
+	}
+	100% {
+		transform: translate(-50%, -50%) scale(2.2);
+		opacity: 0;
+	}
+}
+
+.logo-wrap {
+	position: relative;
+	animation: spinGrow 0.85s cubic-bezier(.17, .84, .24, 1) forwards;
+	transform-origin: center;
+}
+
+.glow-burst {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	width: 170px;
+	height: 170px;
+	transform: translate(-50%, -50%);
+	border-radius: 9999px;
+	background: radial-gradient(
+		circle,
+		rgba(255, 208, 76, 0.9) 0%,
+		rgba(255, 196, 0, 0.45) 35%,
+		rgba(255, 120, 0, 0.18) 58%,
+		rgba(255, 120, 0, 0) 75%
+	);
+	filter: blur(6px);
+	pointer-events: none;
+	opacity: 0;
+	animation: glowBurst 0.55s ease-out 0.82s forwards;
+}
+
+.typed {
+	width: 0ch;
+	max-width: 100%;
+	overflow: hidden;
+	white-space: nowrap;
+	border-right: 3px solid black;
+	animation:
+		typing 2s steps(27, end) 0.9s forwards,
+		blink 0.7s step-end 0.9s infinite;
+}
+
+.hero-shell {
+	min-height: 100vh;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	overflow-x: hidden;
+}
+
+.grade-square-grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 1rem;
+	max-width: 40rem;
+	margin: 0 auto;
+}
+
+.grade-square-card {
+	--accent: #f97316;
+	--accent-rgb: 249, 115, 22;
+	aspect-ratio: 1.2 / 1;
+	position: relative;
+	overflow: hidden;
+	background:
+		radial-gradient(circle at 80% 20%, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0) 45%),
+		linear-gradient(150deg, #0f172a 0%, #111827 55%, #0b1120 100%);
+	color: #f8fafc;
+	border: 1px solid #334155;
+	border-radius: 1.1rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: clamp(1.3rem, 2.2vw, 1.8rem);
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	text-decoration: none;
+	box-shadow: 0 12px 28px rgba(2, 6, 23, 0.35);
+	transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.grade-square-card::before {
+	content: "";
+	position: absolute;
+	inset: auto -18% -24% auto;
+	width: 70%;
+	height: 70%;
+	border-radius: 9999px;
+	background: radial-gradient(circle, rgba(var(--accent-rgb), 0.55), transparent 70%);
+	opacity: 0.7;
+	transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.grade-square-card::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	background: linear-gradient(130deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0) 40%);
+	pointer-events: none;
+}
+
+.grade-square-card:hover {
+	transform: translateY(-6px);
+	border-color: rgba(var(--accent-rgb), 0.8);
+	box-shadow: 0 16px 32px rgba(2, 6, 23, 0.45);
+}
+
+.grade-square-card:hover::before {
+	transform: scale(1.08);
+	opacity: 0.9;
+}
+
+.grade-square-card:focus-visible {
+	outline: 2px solid var(--accent);
+	outline-offset: 3px;
+}
+
+.grade-square-card:nth-child(1) {
+	--accent: #f59e0b;
+	--accent-rgb: 245, 158, 11;
+}
+
+.grade-square-card:nth-child(2) {
+	--accent: #f97316;
+	--accent-rgb: 249, 115, 22;
+}
+
+.grade-square-card:nth-child(3) {
+	--accent: #ea580c;
+	--accent-rgb: 234, 88, 12;
+}
+
+.grade-square-card:nth-child(4) {
+	--accent: #fb923c;
+	--accent-rgb: 251, 146, 60;
+}
+
+@media (max-width: 640px) {
+	.typed {
+		font-size: 1rem;
+		letter-spacing: 0.04em;
+		width: auto;
+		overflow: visible;
+		white-space: normal;
+		border-right: none;
+		animation: none;
+	}
+
+	.grade-square-grid {
+		grid-template-columns: 1fr;
+		gap: 1rem;
+	}
+}
