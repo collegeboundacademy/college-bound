@@ -191,3 +191,52 @@
 		gap: 1rem;
 	}
 }
+
+/* Floating frog styles */
+.floating-frog {
+	position: fixed;
+	right: 1.25rem;
+	top: 30vh;
+	z-index: 60;
+ 	pointer-events: none; /* allow clicks to pass through except on bubble */
+}
+
+.frog-inner {
+ 	display: flex;
+ 	flex-direction: column;
+ 	align-items: center;
+ 	gap: 0.5rem;
+ 	transform: translateY(0);
+ 	transition: transform 0.25s ease-out;
+}
+
+.frog-img {
+ 	width: 72px;
+ 	height: auto;
+ 	filter: drop-shadow(0 6px 12px rgba(2,6,23,0.35));
+ 	animation: frog-bob 3.6s ease-in-out infinite;
+}
+
+.frog-bubble {
+ 	pointer-events: auto; /* bubble can be clicked */
+ 	background: rgba(255,255,255,0.95);
+ 	color: #0b1220;
+ 	padding: 0.5rem 0.75rem;
+ 	border-radius: 0.6rem;
+ 	box-shadow: 0 8px 20px rgba(2,6,23,0.15);
+ 	font-size: 0.875rem;
+ 	line-height: 1.15;
+ 	max-width: 14rem;
+ 	text-align: center;
+}
+
+@keyframes frog-bob {
+ 	0% { transform: translateY(0); }
+ 	50% { transform: translateY(-8px) rotate(-2deg); }
+ 	100% { transform: translateY(0); }
+}
+
+/* Reduce or hide frog on small screens to avoid covering content */
+@media (max-width: 640px) {
+ 	.floating-frog { display: none; }
+}

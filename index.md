@@ -29,6 +29,56 @@ description: Gateway to College Bound's Vast Resources
 		</div>
 	</section>
 
+	<!-- FLOATING FROG (floating beside the viewport) -->
+	<!-- The frog stays visible on the right side and gently floats; JS nudges it while scrolling -->
+	<div id="floating-frog" class="floating-frog" aria-live="polite" aria-atomic="true">
+		<div class="frog-inner">
+			<img src="{{ '/images/image-removebg-preview-3.png' | relative_url }}" alt="Froggy mascot" class="frog-img" />
+			<div class="frog-bubble" id="frog-bubble">Hi — click your grade level to start!</div>
+		</div>
+	</div>
+
+	<script>
+	// Smoothly nudge the floating frog as the page scrolls
+	(function(){
+		const frog = document.getElementById('floating-frog');
+		const bubble = document.getElementById('frog-bubble');
+		if(!frog) return;
+
+		let lastScrollY = window.scrollY;
+		let currentTop = frog.getBoundingClientRect().top + window.scrollY;
+
+		function onScroll(){
+			const targetTop = window.scrollY + window.innerHeight * 0.3;
+			// gentle easing
+			currentTop += (targetTop - currentTop) * 0.12;
+			frog.style.top = Math.max(48, currentTop - window.scrollY) + 'px';
+		}
+
+		let ticking = false;
+		window.addEventListener('scroll', ()=>{
+			if(!ticking){
+				window.requestAnimationFrame(()=>{ onScroll(); ticking = false; });
+				ticking = true;
+			}
+		}, { passive: true });
+
+		// Allow clicking the bubble to toggle a short message
+		if(bubble){
+			bubble.addEventListener('click', ()=>{
+				if(bubble.dataset.toggled === '1'){
+					bubble.textContent = 'Hi — click your grade level to start!';
+					bubble.dataset.toggled = '0';
+				}else{
+					bubble.textContent = 'Good luck — check the calendar for events.';
+					bubble.dataset.toggled = '1';
+				}
+			});
+		}
+	})();
+	</script>
+
+
 	<!-- RESOURCES SECTION -->
 	<div class="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8 pb-20">
 		<section class="mb-12">
