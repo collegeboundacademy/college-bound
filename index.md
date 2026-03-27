@@ -34,27 +34,34 @@ description: Gateway to College Bound's Vast Resources
 	<div id="floating-frog" class="floating-frog" aria-live="polite" aria-atomic="true">
 		<div class="frog-inner">
 			<img src="{{ '/images/image-removebg-preview-3.png' | relative_url }}" alt="Froggy mascot" class="frog-img" />
-			<div class="frog-bubble" id="frog-bubble">Hi — click your grade level to start!</div>
+			<div class="frog-bubble" id="frog-bubble" role="region" aria-labelledby="frog-question">
+				<div id="frog-question" class="frog-question">What are you interested in?</div>
+				<div id="frog-options" class="frog-options" role="list">
+					<button class="frog-option" data-choice="scholarships">Scholarships</button>
+					<button class="frog-option" data-choice="admissions" disabled aria-disabled="true">Admissions (soon)</button>
+					<button class="frog-option" data-choice="extracurricular" disabled aria-disabled="true">Extracurriculars (soon)</button>
+				</div>
+				<div id="frog-response" class="frog-response" aria-live="polite"></div>
+			</div>
 		</div>
 	</div>
 
 	<script>
-	// Smoothly nudge the floating frog as the page scrolls
+	// Floating frog: scroll-follow + simple dialogue options
 	(function(){
 		const frog = document.getElementById('floating-frog');
-		const bubble = document.getElementById('frog-bubble');
+		const options = document.querySelectorAll('.frog-option');
+		const responseEl = document.getElementById('frog-response');
+		const questionEl = document.getElementById('frog-question');
 		if(!frog) return;
 
-		let lastScrollY = window.scrollY;
+		// --- scroll follow ---
 		let currentTop = frog.getBoundingClientRect().top + window.scrollY;
-
 		function onScroll(){
 			const targetTop = window.scrollY + window.innerHeight * 0.3;
-			// gentle easing
 			currentTop += (targetTop - currentTop) * 0.12;
 			frog.style.top = Math.max(48, currentTop - window.scrollY) + 'px';
 		}
-
 		let ticking = false;
 		window.addEventListener('scroll', ()=>{
 			if(!ticking){
@@ -63,18 +70,23 @@ description: Gateway to College Bound's Vast Resources
 			}
 		}, { passive: true });
 
-		// Allow clicking the bubble to toggle a short message
-		if(bubble){
-			bubble.addEventListener('click', ()=>{
-				if(bubble.dataset.toggled === '1'){
-					bubble.textContent = 'Hi — click your grade level to start!';
-					bubble.dataset.toggled = '0';
-				}else{
-					bubble.textContent = 'Good luck — check the calendar for events.';
-					bubble.dataset.toggled = '1';
+		// --- dialogue handling ---
+		function showScholarshipInfo(){
+			questionEl.textContent = 'Our scraper bot is in progress.';
+			responseEl.textContent = 'Common prompts will come soon.';
+		}
+
+		options.forEach(btn=>{
+			btn.addEventListener('click', (e)=>{
+				const choice = btn.dataset.choice;
+				if(choice === 'scholarships'){
+					showScholarshipInfo();
+					// mark chosen state
+					options.forEach(b=>b.setAttribute('aria-pressed','false'));
+					btn.setAttribute('aria-pressed','true');
 				}
 			});
-		}
+		});
 	})();
 	</script>
 

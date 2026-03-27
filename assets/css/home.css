@@ -240,3 +240,34 @@
 @media (max-width: 640px) {
  	.floating-frog { display: none; }
 }
+
+/* Frog dialogue UI */
+.frog-question {
+ 	font-weight: 700;
+ 	margin-bottom: 0.35rem;
+}
+.frog-options {
+ 	display: flex;
+ 	flex-direction: column;
+ 	gap: 0.35rem;
+}
+.frog-option {
+ 	background: #0b1220;
+ 	color: #fff;
+ 	border: none;
+ 	padding: 0.4rem 0.6rem;
+ 	border-radius: 0.45rem;
+ 	cursor: pointer;
+ 	font-size: 0.85rem;
+}
+.frog-option[disabled], .frog-option[aria-disabled="true"] {
+ 	opacity: 0.45;
+ 	cursor: not-allowed;
+}
+.frog-response {
+ 	margin-top: 0.5rem;
+ 	font-size: 0.85rem;
+ 	color: #0b1220;
+}
+.frog-response ul { padding-left: 1.1rem; margin: 0.25rem 0; }
+.frog-response li { margin-bottom: 0.35rem; }
