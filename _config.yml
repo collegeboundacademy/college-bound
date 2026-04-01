@@ -27,7 +27,7 @@ baseurl: "/college-bound" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 
 # College Explorer API endpoint (must point to deployed backend, not GitHub Pages)
-college_explorer_api_base: "http://localhost:8080/api/colleges"
+college_explorer_api_base: "https://college-bound-backend.onrender.com/api/colleges"
 
 header_pages:
   - title: College Explorer
