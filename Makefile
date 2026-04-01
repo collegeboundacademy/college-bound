@@ -1,5 +1,5 @@
 # Makefile with Jekyll support and fallback to python http.server
-.PHONY: all serve setup serve-jekyll serve-no-livereload serve-py
+.PHONY: all serve setup serve-jekyll serve-no-livereload serve-py quest-backend quest-dev
 
 # Configurable ports (can be overridden: `make PORT=4001 LR_PORT=35730`)
 PORT ?= 4000
@@ -34,3 +34,9 @@ serve-jekyll:
 
 serve-py:
 	python3 -m http.server 8000
+
+quest-backend:
+	cd ../college-bound-backend && ./mvnw spring-boot:run
+
+quest-dev:
+	bash ./scripts/quest-dev.sh
