@@ -416,19 +416,58 @@ function buildDonutSegments(items) {
     const start = offset;
     const end = offset + pct;
     offset = end;
-    return `${item.color} ${start.toFixed(2)}% ${end.toFixed(2)}%`;
+    return {
+      label: item.label,
+      color: item.color,
+      percent: Number(((item.value / total) * 100).toFixed(1)),
+      start,
+      end,
+    };
   });
 
   const legend = valid.map((item) => ({
     label: item.label,
     color: item.color,
-    percent: ((item.value / total) * 100).toFixed(1),
+    percent: Number(((item.value / total) * 100).toFixed(1)),
   }));
 
   return {
-    gradient: `conic-gradient(${segments.join(", ")})`,
+    segments,
     legend,
   };
+}
+
+function polarToCartesian(cx, cy, radius, angleInDegrees) {
+  const angleInRadians = ((angleInDegrees - 90) * Math.PI) / 180.0;
+  return {
+    x: cx + radius * Math.cos(angleInRadians),
+    y: cy + radius * Math.sin(angleInRadians),
+  };
+}
+
+function donutArcPath(cx, cy, radius, startAngle, endAngle) {
+  const start = polarToCartesian(cx, cy, radius, endAngle);
+  const end = polarToCartesian(cx, cy, radius, startAngle);
+  const largeArcFlag = endAngle - startAngle <= 180 ? "0" : "1";
+  return [`M`, start.x, start.y, `A`, radius, radius, 0, largeArcFlag, 0, end.x, end.y].join(" ");
+}
+
+function buildDonutSvg(segments) {
+  const size = 112;
+  const center = size / 2;
+  const radius = 42;
+
+  return `
+    <svg viewBox="0 0 ${size} ${size}" aria-hidden="true">
+      ${segments
+        .map((segment) => {
+          const startAngle = (segment.start / 100) * 360;
+          const endAngle = (segment.end / 100) * 360;
+          const d = donutArcPath(center, center, radius, startAngle, endAngle);
+          return `<path class="donut-segment" d="${d}" stroke="${segment.color}" stroke-width="26" fill="none" stroke-linecap="butt" data-label="${segment.label}" data-percent="${segment.percent.toFixed(1)}"></path>`;
+        })
+        .join("")}
+    </svg>`;
 }
 
 function renderDonutChart(title, subtitle, donut) {
@@ -445,10 +484,10 @@ function renderDonutChart(title, subtitle, donut) {
   const legend = donut.legend
     .map(
       (item) => `
-      <li>
+      <li data-label="${item.label}" data-percent="${item.percent.toFixed(1)}">
         <span class="swatch" style="background:${item.color}"></span>
         <span>${item.label}</span>
-        <strong>${item.percent}%</strong>
+        <strong>${item.percent.toFixed(1)}%</strong>
       </li>`
     )
     .join("");
@@ -457,10 +496,53 @@ function renderDonutChart(title, subtitle, donut) {
     <div class="donut-card">
       <h5>${title}</h5>
       <p class="donut-subtitle">${subtitle}</p>
-      <div class="donut-ring" style="--ring:${donut.gradient}"></div>
+      <div class="donut-ring">
+        ${buildDonutSvg(donut.segments)}
+        <div class="donut-center">
+          <div>
+            <div class="donut-center-value">100%</div>
+            <div class="donut-center-label">Total</div>
+          </div>
+        </div>
+      </div>
       <ul class="donut-legend">${legend}</ul>
     </div>
   `;
+}
+
+function bindDonutInteractions(container) {
+  for (const card of container.querySelectorAll(".donut-card")) {
+    const centerValue = card.querySelector(".donut-center-value");
+    const centerLabel = card.querySelector(".donut-center-label");
+    if (!centerValue || !centerLabel) {
+      continue;
+    }
+
+    const resetCenter = () => {
+      centerValue.textContent = "100%";
+      centerLabel.textContent = "Total";
+    };
+
+    for (const segment of card.querySelectorAll(".donut-segment")) {
+      segment.addEventListener("mouseenter", () => {
+        const label = segment.getAttribute("data-label") || "Segment";
+        const percent = segment.getAttribute("data-percent") || "0.0";
+        centerValue.textContent = `${percent}%`;
+        centerLabel.textContent = label;
+      });
+      segment.addEventListener("mouseleave", resetCenter);
+    }
+
+    for (const legendItem of card.querySelectorAll(".donut-legend li")) {
+      legendItem.addEventListener("mouseenter", () => {
+        const label = legendItem.getAttribute("data-label") || "Segment";
+        const percent = legendItem.getAttribute("data-percent") || "0.0";
+        centerValue.textContent = `${percent}%`;
+        centerLabel.textContent = label;
+      });
+      legendItem.addEventListener("mouseleave", resetCenter);
+    }
+  }
 }
 
 function readStudentProfile() {
@@ -812,6 +894,8 @@ function renderDetailPanel(collegeId) {
       ${websiteUrl ? `<a href="${websiteUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 0.5rem; padding: 0.75rem 1.5rem; background: #f97316; color: #0f172a; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 0.95rem; transition: background 0.2s;">Visit Website</a>` : ""}
     </div>
   `;
+
+  bindDonutInteractions(el.detailPanel);
 }
 
 function toggleSelection(id) {

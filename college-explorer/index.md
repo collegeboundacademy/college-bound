@@ -19,7 +19,7 @@ permalink: /college-explorer/
         <div class="top-action-card">
           <label>
             School search
-            <input id="query" type="text" placeholder="Try: Georgia Tech, UCLA, Howard" />
+            <input id="query" type="text" placeholder="Try: Georgia Tech, UCLA, Howard" autocomplete="off" autocapitalize="off" spellcheck="false" />
           </label>
           <button id="searchBtn" class="btn-primary" type="button">Search Colleges</button>
         </div>
