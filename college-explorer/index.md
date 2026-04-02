@@ -29,6 +29,12 @@ permalink: /college-explorer/
           <p class="quiz-subtitle">Answer a few questions and we will use your profile to classify schools as Reach, Target, or Strong.</p>
           <button id="quizBtn" class="btn-secondary" type="button">Take Personalized Quiz</button>
           <p id="profileSummary" class="status">No profile yet. Quiz results improve matching.</p>
+          <p id="studentKeyText" class="status">Student Key: Generating...</p>
+          <div class="actions" style="margin-top:0.5rem; display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+            <button id="copyStudentKeyBtn" class="compare-btn" type="button">Copy Key</button>
+            <input id="restoreStudentKeyInput" type="text" placeholder="Paste key to restore" style="min-width:200px;" />
+            <button id="restoreStudentKeyBtn" class="compare-btn" type="button">Restore</button>
+          </div>
         </div>
       </div>
 

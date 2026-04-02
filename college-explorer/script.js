@@ -1,6 +1,7 @@
 const API_BASE = window.COLLEGE_EXPLORER_API_BASE || "http://localhost:8080/api/colleges";
 const PROFILE_STORAGE_KEY = "collegeExplorer.studentProfile.v1";
 const SAVED_COLLEGES_STORAGE_KEY = "collegeExplorer.savedColleges.v1";
+const STUDENT_KEY_STORAGE_KEY = "collegeExplorer.studentKey.v1";
 
 const el = {
   query: document.getElementById("query"),
@@ -17,6 +18,10 @@ const el = {
   quizState: document.getElementById("quizState"),
   quizType: document.getElementById("quizType"),
   quizMaxNetPrice: document.getElementById("quizMaxNetPrice"),
+  studentKeyText: document.getElementById("studentKeyText"),
+  copyStudentKeyBtn: document.getElementById("copyStudentKeyBtn"),
+  restoreStudentKeyInput: document.getElementById("restoreStudentKeyInput"),
+  restoreStudentKeyBtn: document.getElementById("restoreStudentKeyBtn"),
   statusText: document.getElementById("statusText"),
   sortBy: document.getElementById("sortBy"),
   resultsList: document.getElementById("resultsList"),
@@ -29,6 +34,8 @@ let searchResults = [];
 const selectedIds = new Set();
 let activeCollegeId = null;
 let dataLastRefreshed = "";
+let studentKey = "";
+let cloudSyncTimer = null;
 let studentProfile = {
   gpa: null,
   sat: null,
@@ -39,6 +46,125 @@ let studentProfile = {
   maxNetPrice: null,
 };
 let savedColleges = new Map();
+
+function generateStudentKey() {
+  if (window.crypto && typeof window.crypto.randomUUID === "function") {
+    return window.crypto.randomUUID();
+  }
+  return `student-${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+}
+
+function loadStudentKey() {
+  const existing = window.localStorage.getItem(STUDENT_KEY_STORAGE_KEY);
+  if (existing && existing.trim()) {
+    studentKey = existing.trim();
+    return;
+  }
+
+  studentKey = generateStudentKey();
+  window.localStorage.setItem(STUDENT_KEY_STORAGE_KEY, studentKey);
+}
+
+function renderStudentKey() {
+  if (el.studentKeyText) {
+    el.studentKeyText.textContent = `Student Key: ${studentKey}`;
+  }
+
+  if (el.restoreStudentKeyInput && !el.restoreStudentKeyInput.value.trim()) {
+    el.restoreStudentKeyInput.value = studentKey;
+  }
+}
+
+function getSavedCollegeRows() {
+  return Array.from(savedColleges.values());
+}
+
+async function loadCloudPersistence() {
+  if (!studentKey) {
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/persistence?studentKey=${encodeURIComponent(studentKey)}`);
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = await response.json();
+    if (!payload || typeof payload !== "object") {
+      return;
+    }
+
+    if (payload.profile && typeof payload.profile === "object") {
+      studentProfile = {
+        gpa: typeof payload.profile.gpa === "number" ? payload.profile.gpa : null,
+        sat: Number.isInteger(payload.profile.sat) ? payload.profile.sat : null,
+        act: Number.isInteger(payload.profile.act) ? payload.profile.act : null,
+        budget: Number.isInteger(payload.profile.budget) ? payload.profile.budget : null,
+        preferredState: typeof payload.profile.preferredState === "string" ? payload.profile.preferredState : "",
+        preferredType: typeof payload.profile.preferredType === "string" ? payload.profile.preferredType : "",
+        maxNetPrice: Number.isInteger(payload.profile.maxNetPrice) ? payload.profile.maxNetPrice : null,
+      };
+      persistStudentProfile();
+    }
+
+    if (Array.isArray(payload.savedColleges)) {
+      const next = new Map();
+      for (const row of payload.savedColleges) {
+        if (!row || typeof row !== "object" || typeof row.id !== "string" || !row.id) {
+          continue;
+        }
+        next.set(row.id, {
+          id: row.id,
+          name: typeof row.name === "string" ? row.name : row.id,
+          state: typeof row.state === "string" ? row.state : "N/A",
+          type: typeof row.type === "string" ? row.type : "Unknown",
+          averageNetPrice: typeof row.averageNetPrice === "number" ? row.averageNetPrice : null,
+          acceptanceRate: typeof row.acceptanceRate === "number" ? row.acceptanceRate : null,
+        });
+      }
+
+      if (next.size > 0) {
+        savedColleges = next;
+        persistSavedColleges();
+      }
+    }
+  } catch (error) {
+    // Keep local fallback when cloud sync is unavailable.
+  }
+}
+
+async function syncCloudPersistence() {
+  if (!studentKey) {
+    return;
+  }
+
+  const body = {
+    studentKey,
+    profile: studentProfile,
+    savedColleges: getSavedCollegeRows(),
+  };
+
+  try {
+    await fetch(`${API_BASE}/persistence`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch (error) {
+    // Ignore sync failures; local storage remains the source of truth.
+  }
+}
+
+function scheduleCloudSync() {
+  if (cloudSyncTimer) {
+    window.clearTimeout(cloudSyncTimer);
+  }
+
+  cloudSyncTimer = window.setTimeout(() => {
+    syncCloudPersistence();
+  }, 400);
+}
 
 function readStorageJSON(key, fallback) {
   try {
@@ -58,6 +184,8 @@ function persistStudentProfile() {
   } catch (error) {
     // Ignore storage errors to keep the app usable in restricted browsers.
   }
+
+  scheduleCloudSync();
 }
 
 function loadStudentProfile() {
@@ -84,6 +212,8 @@ function persistSavedColleges() {
   } catch (error) {
     // Ignore storage errors to keep the app usable in restricted browsers.
   }
+
+  scheduleCloudSync();
 }
 
 function loadSavedColleges() {
@@ -815,9 +945,48 @@ if (el.quizSaveBtn) {
   el.quizSaveBtn.addEventListener("click", saveQuizProfile);
 }
 
+if (el.copyStudentKeyBtn) {
+  el.copyStudentKeyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(studentKey);
+      el.statusText.textContent = "Student Key copied. Keep it safe to restore on another device.";
+    } catch (error) {
+      el.statusText.textContent = "Could not copy key. You can copy it manually from the Student Key line.";
+    }
+  });
+}
+
+if (el.restoreStudentKeyBtn) {
+  el.restoreStudentKeyBtn.addEventListener("click", async () => {
+    const value = (el.restoreStudentKeyInput?.value || "").trim();
+    if (!value) {
+      el.statusText.textContent = "Paste a Student Key to restore.";
+      return;
+    }
+
+    studentKey = value;
+    window.localStorage.setItem(STUDENT_KEY_STORAGE_KEY, studentKey);
+    renderStudentKey();
+    await loadCloudPersistence();
+    renderProfileSummary();
+    renderSavedColleges();
+    searchColleges();
+    el.statusText.textContent = "Restored data for this Student Key.";
+  });
+}
+
+loadStudentKey();
 loadStudentProfile();
 loadSavedColleges();
+renderStudentKey();
+loadCloudPersistence().then(() => {
+  renderProfileSummary();
+  renderSavedColleges();
+  searchColleges();
+});
 renderProfileSummary();
 renderSavedColleges();
 
-searchColleges();
+if (!searchResults.length) {
+  searchColleges();
+}
