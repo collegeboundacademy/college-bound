@@ -790,7 +790,6 @@ function renderDetailPanel(collegeId) {
   const financial = classifyFinancialFit(college, profile.budget);
   const websiteUrl = normalizeUrl(college.website);
 
-  // Build donut charts for demographics
   const raceDonut = buildDonutSegments([
     { label: "White", value: college.raceWhiteShare, color: "#38bdf8" },
     { label: "Black", value: college.raceBlackShare, color: "#22c55e" },
@@ -805,85 +804,35 @@ function renderDetailPanel(collegeId) {
     { label: "Men", value: college.menShare, color: "#60a5fa" },
   ]);
 
-  const generationDonut = buildDonutSegments([
-    { label: "Continuing Gen", value: Math.max(0, 1 - (college.firstGenerationShare || 0)), color: "#3b82f6" },
-    { label: "First Gen", value: college.firstGenerationShare || 0, color: "#10b981" },
-  ]);
-
-  const enrollmentDonut = buildDonutSegments([
-    { label: "Full-Time", value: Math.max(0, 1 - (college.partTimeShare || 0)), color: "#8b5cf6" },
-    { label: "Part-Time", value: college.partTimeShare || 0, color: "#f59e0b" },
-  ]);
-
-  const fitDescription = getFitDescription(academic, financial, college, profile);
-
   el.detailPanel.innerHTML = `
-    <div style="overflow-y: auto; max-height: 600px; padding-right: 8px;">
-      <h3 style="margin-top: 0; margin-bottom: 0.25rem;">${college.name}</h3>
-      <p style="color: #94a3b8; margin: 0 0 1.5rem 0; font-size: 0.9rem;">${college.type} • ${college.state} | Urban</p>
+    <div style="overflow-y: auto; max-height: 800px; padding-right: 8px;">
+      <h3 style="margin-top: 0;">${college.name}</h3>
+      <p style="color: #94a3b8; margin-bottom: 1.5rem;">${college.type} • ${college.state}</p>
       
-      <!-- Two-Column Layout: Metrics + Fit Assessment -->
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
-        
-        <!-- Left Column: At a Glance Metrics -->
-        <div>
-          <div style="background: #1e293b; padding: 1.2rem; border-radius: 8px; margin-bottom: 0;">
-            <h4 style="margin: 0 0 1rem 0; font-size: 0.85rem; text-transform: uppercase; color: #cbd5e1; letter-spacing: 0.05em;">At a Glance</h4>
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; row-gap: 1.2rem;">
-              <div>
-                <p style="margin: 0; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 500;">Acceptance Rate</p>
-                <p style="margin: 0.3rem 0 0 0; font-size: 1.3rem; font-weight: 700; color: #f9fafb;">${formatPercent(college.acceptanceRate)}</p>
-              </div>
-              <div>
-                <p style="margin: 0; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 500;">Avg Net Price</p>
-                <p style="margin: 0.3rem 0 0 0; font-size: 1.3rem; font-weight: 700; color: #f9fafb;">${formatCurrency(college.averageNetPrice)}</p>
-              </div>
-              <div>
-                <p style="margin: 0; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 500;">Retention</p>
-                <p style="margin: 0.3rem 0 0 0; font-size: 1.3rem; font-weight: 700; color: #f9fafb;">${formatPercent(college.retentionRate)}</p>
-              </div>
-              <div>
-                <p style="margin: 0; font-size: 0.8rem; color: #94a3b8; text-transform: uppercase; font-weight: 500;">Next Deadline</p>
-                <p style="margin: 0.3rem 0 0 0; font-size: 1.3rem; font-weight: 700; color: #f9fafb;">No data</p>
-              </div>
-            </div>
+      <!-- At a Glance Section -->
+      <div style="background: #1e293b; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; text-transform: uppercase; color: #cbd5e1;">At a Glance</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+          <div>
+            <p style="margin: 0; font-size: 0.85rem; color: #94a3b8;">Acceptance Rate</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1.5rem; font-weight: 600; color: #f9fafb;">${formatPercent(college.acceptanceRate)}</p>
           </div>
-        </div>
-
-        <!-- Right Column: Is this college right for you? -->
-        <div>
-          <div style="background: #1e293b; padding: 1.2rem; border-radius: 8px; border-left: 4px solid #3b82f6;">
-            <h4 style="margin: 0 0 1rem 0; font-size: 0.85rem; text-transform: uppercase; color: #cbd5e1; letter-spacing: 0.05em;">✨ Is this college right for you?</h4>
-            <p style="margin: 0 0 1rem 0; font-size: 0.85rem; color: #cbd5e1; line-height: 1.4;">${fitDescription}</p>
-            
-            <div style="margin-top: 1rem;">
-              <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
-                <span style="color: #10b981; margin-right: 0.5rem; font-weight: 700; font-size: 1.2rem;">✓</span>
-                <div>
-                  <p style="margin: 0; font-weight: 600; color: #f9fafb; font-size: 0.9rem;">Academic Fit</p>
-                  <p style="margin: 0.2rem 0 0 0; font-size: 0.8rem; color: #94a3b8;">${academic}</p>
-                </div>
-              </div>
-              <div style="display: flex; align-items: center; margin-bottom: 0.75rem;">
-                <span style="color: #10b981; margin-right: 0.5rem; font-weight: 700; font-size: 1.2rem;">✓</span>
-                <div>
-                  <p style="margin: 0; font-weight: 600; color: #f9fafb; font-size: 0.9rem;">Financial Fit</p>
-                  <p style="margin: 0.2rem 0 0 0; font-size: 0.8rem; color: #94a3b8;">${financial}</p>
-                </div>
-              </div>
-              <div style="display: flex; align-items: center;">
-                <span style="color: #d1d5db; margin-right: 0.5rem; font-weight: 700; font-size: 1.2rem;">○</span>
-                <div>
-                  <p style="margin: 0; font-weight: 600; color: #f9fafb; font-size: 0.9rem;">GPA Match</p>
-                  <p style="margin: 0.2rem 0 0 0; font-size: 0.8rem; color: #94a3b8;">Complete quiz for insights</p>
-                </div>
-              </div>
-            </div>
+          <div>
+            <p style="margin: 0; font-size: 0.85rem; color: #94a3b8;">Avg Net Price</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1.5rem; font-weight: 600; color: #f9fafb;">${formatCurrency(college.averageNetPrice)}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.85rem; color: #94a3b8;">Retention</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1.5rem; font-weight: 600; color: #f9fafb;">${formatPercent(college.retentionRate)}</p>
+          </div>
+          <div>
+            <p style="margin: 0; font-size: 0.85rem; color: #94a3b8;">Graduation (4yr)</p>
+            <p style="margin: 0.25rem 0 0 0; font-size: 1.5rem; font-weight: 600; color: #f9fafb;">${formatPercent(college.graduationRate4Year)}</p>
           </div>
         </div>
       </div>
 
-      <!-- Academic Profile Section -->
+      <!-- Academic Profile -->
       <div style="background: #1e293b; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
         <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; text-transform: uppercase; color: #cbd5e1;">Academic Profile</h4>
         <div style="display: grid; gap: 0.8rem; font-size: 0.95rem;">
@@ -906,59 +855,47 @@ function renderDetailPanel(collegeId) {
         </div>
       </div>
 
-      <!-- Demographics with Multiple Donut Charts -->
-      <div style="background: #1e293b; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
-        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; text-transform: uppercase; color: #cbd5e1;">Student Demographics</h4>
-        <div class="demographics-grid">
-          ${renderDonutChart("Race/Ethnicity", "Share of enrolled students", raceDonut)}
-          ${renderDonutChart("Sex Distribution", "Male and female students", sexDonut)}
-          ${renderDonutChart("Generation", "First-gen vs continuing-gen", generationDonut)}
-          ${renderDonutChart("Enrollment", "Full-time vs part-time students", enrollmentDonut)}
-        </div>
-      </div>
-
       <!-- Career & Financial -->
       <div style="background: #1e293b; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
-        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; text-transform: uppercase; color: #cbd5e1;">Career & Financial Outcomes</h4>
+        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; text-transform: uppercase; color: #cbd5e1;">Career & Financial</h4>
         <div style="display: grid; gap: 0.8rem; font-size: 0.95rem;">
           <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
             <span style="color: #94a3b8;">Median Earnings (6yrs)</span>
             <span style="color: #f9fafb; font-weight: 600;">${college.earningsMedian6Yrs ? "$" + college.earningsMedian6Yrs.toLocaleString() : "N/A"}</span>
           </div>
+          <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #334155; padding-bottom: 0.5rem;">
+            <span style="color: #94a3b8;">First-Gen Students</span>
+            <span style="color: #f9fafb; font-weight: 600;">${college.firstGenerationShare ? formatPercent(college.firstGenerationShare) : "N/A"}</span>
+          </div>
           <div style="display: flex; justify-content: space-between;">
-            <span style="color: #94a3b8;">4-Year Graduation Rate</span>
-            <span style="color: #f9fafb; font-weight: 600;">${formatPercent(college.graduationRate4Year)}</span>
+            <span style="color: #94a3b8;">Part-Time Students</span>
+            <span style="color: #f9fafb; font-weight: 600;">${college.partTimeShare ? formatPercent(college.partTimeShare) : "N/A"}</span>
           </div>
         </div>
       </div>
 
-      ${websiteUrl ? `<a href="${websiteUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 1rem; padding: 0.75rem 1.5rem; background: #f97316; color: #0f172a; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 0.95rem; transition: background 0.2s;">Visit Website →</a>` : ""}
+      <div style="background: #1e293b; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; text-transform: uppercase; color: #cbd5e1;">Student Demographics</h4>
+        <div class="demographics-grid">
+          ${renderDonutChart("Race Distribution", "Share of enrolled students", raceDonut)}
+          ${renderDonutChart("Sex Distribution", "Men and women share", sexDonut)}
+        </div>
+      </div>
+      
+      <!-- Fit Indicators -->
+      <div style="background: #1e293b; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
+        <h4 style="margin: 0 0 1rem 0; font-size: 0.95rem; text-transform: uppercase; color: #cbd5e1;">Your Fit</h4>
+        <div style="display: grid; gap: 0.8rem;">
+          <p style="margin: 0; font-size: 0.95rem;"><span style="color: #94a3b8;">Academic:</span> <span class="${fitClass(academic)}" style="font-weight: 600;">${academic}</span></p>
+          <p style="margin: 0; font-size: 0.95rem;"><span style="color: #94a3b8;">Financial:</span> <span class="${fitClass(financial)}" style="font-weight: 600;">${financial}</span></p>
+        </div>
+      </div>
+
+      ${websiteUrl ? `<a href="${websiteUrl}" target="_blank" rel="noopener noreferrer" style="display: inline-block; margin-top: 0.5rem; padding: 0.75rem 1.5rem; background: #f97316; color: #0f172a; text-decoration: none; border-radius: 6px; font-weight: 600; font-size: 0.95rem; transition: background 0.2s;">Visit Website</a>` : ""}
     </div>
   `;
 
   bindDonutInteractions(el.detailPanel);
-}
-
-function getFitDescription(academic, financial, college, profile) {
-  const parts = [];
-  
-  if (academic === "Strong" && financial !== "Over Budget") {
-    parts.push("This college matches your academic profile and fits your budget well.");
-  } else if (academic === "Target" && financial !== "Over Budget") {
-    parts.push("This college is a good match for your academic level and financial situation.");
-  } else if (academic === "Reach") {
-    parts.push("This is a challenging school academically, but could still be a good fit.");
-  }
-
-  if (profile.gpa === null || profile.sat === null) {
-    parts.push("Complete the quiz above for more personalized insights about your academic fit.");
-  }
-
-  if (financial === "Over Budget") {
-    parts.push("The average net price is above your stated budget, but many students receive aid.");
-  }
-
-  return parts.join(" ") || "Complete your profile for personalized fit assessment.";
 }
 
 function toggleSelection(id) {
