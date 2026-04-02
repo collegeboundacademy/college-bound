@@ -33,6 +33,7 @@ const el = {
 let searchResults = [];
 const selectedIds = new Set();
 let activeCollegeId = null;
+let detailPanelExpanded = false;
 let dataLastRefreshed = "";
 let studentKey = "";
 let cloudSyncTimer = null;
@@ -664,6 +665,10 @@ async function searchColleges() {
 }
 
 function renderResults() {
+  // Reset expanded state when rendering results
+  detailPanelExpanded = false;
+  updateDetailPanelLayout();
+
   const sortedResults = sortResults(searchResults);
 
   if (sortedResults.length === 0) {
@@ -805,9 +810,16 @@ function renderDetailPanel(collegeId) {
   ]);
 
   el.detailPanel.innerHTML = `
-    <div style="overflow-y: auto; max-height: 800px; padding-right: 8px;">
-      <h3 style="margin-top: 0;">${college.name}</h3>
-      <p style="color: #94a3b8; margin-bottom: 1.5rem;">${college.type} • ${college.state}</p>
+    <div style="overflow-y: auto; max-height: 800px; padding-right: 8px; position: relative;">
+      <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+        <div>
+          <h3 style="margin-top: 0;">${college.name}</h3>
+          <p style="color: #94a3b8; margin-bottom: 1.5rem;">${college.type} • ${college.state}</p>
+        </div>
+        <button id="expandDetailBtn" class="expand-detail-btn" title="Expand detail panel" aria-label="Expand detail panel">
+          <span style="font-size: 1.2rem;">⛶</span>
+        </button>
+      </div>
       
       <!-- At a Glance Section -->
       <div style="background: #1e293b; padding: 1.2rem; border-radius: 8px; margin-bottom: 1.5rem;">
@@ -896,6 +908,14 @@ function renderDetailPanel(collegeId) {
   `;
 
   bindDonutInteractions(el.detailPanel);
+
+  const expandBtn = el.detailPanel.querySelector("#expandDetailBtn");
+  if (expandBtn) {
+    expandBtn.addEventListener("click", () => {
+      detailPanelExpanded = !detailPanelExpanded;
+      updateDetailPanelLayout();
+    });
+  }
 }
 
 function toggleSelection(id) {
@@ -907,6 +927,23 @@ function toggleSelection(id) {
 
   renderResults();
   refreshCompare();
+}
+
+function updateDetailPanelLayout() {
+  const resultsGrid = document.querySelector(".results-grid");
+  const resultsList = document.querySelector("#resultsList");
+  
+  if (detailPanelExpanded) {
+    // Expanded: hide results list, expand panel
+    if (resultsGrid) resultsGrid.style.gridTemplateColumns = "1fr";
+    if (resultsList) resultsList.style.display = "none";
+    if (el.detailPanel) el.detailPanel.classList.add("detail-panel-expanded");
+  } else {
+    // Collapsed: show results list, normal layout
+    if (resultsGrid) resultsGrid.style.gridTemplateColumns = "1fr 1fr";
+    if (resultsList) resultsList.style.display = "grid";
+    if (el.detailPanel) el.detailPanel.classList.remove("detail-panel-expanded");
+  }
 }
 
 function fitClass(value) {
