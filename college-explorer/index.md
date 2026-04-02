@@ -68,6 +68,14 @@ permalink: /college-explorer/
       </div>
       <div id="comparePanel" class="compare-panel">Pick schools to build a side-by-side view.</div>
     </section>
+
+    <section class="compare card">
+      <div class="section-head">
+        <h2>Saved Colleges</h2>
+        <p>Saved on this device for future visits.</p>
+      </div>
+      <div id="savedPanel" class="compare-panel">No saved colleges yet. Click Save on any result card.</div>
+    </section>
   </main>
 </section>
 

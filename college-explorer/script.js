@@ -1,4 +1,6 @@
 const API_BASE = window.COLLEGE_EXPLORER_API_BASE || "http://localhost:8080/api/colleges";
+const PROFILE_STORAGE_KEY = "collegeExplorer.studentProfile.v1";
+const SAVED_COLLEGES_STORAGE_KEY = "collegeExplorer.savedColleges.v1";
 
 const el = {
   query: document.getElementById("query"),
@@ -20,6 +22,7 @@ const el = {
   resultsList: document.getElementById("resultsList"),
   detailPanel: document.getElementById("detailPanel"),
   comparePanel: document.getElementById("comparePanel"),
+  savedPanel: document.getElementById("savedPanel"),
 };
 
 let searchResults = [];
@@ -35,6 +38,205 @@ let studentProfile = {
   preferredType: "",
   maxNetPrice: null,
 };
+let savedColleges = new Map();
+
+function readStorageJSON(key, fallback) {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (!raw) {
+      return fallback;
+    }
+    return JSON.parse(raw);
+  } catch (error) {
+    return fallback;
+  }
+}
+
+function persistStudentProfile() {
+  try {
+    window.localStorage.setItem(PROFILE_STORAGE_KEY, JSON.stringify(studentProfile));
+  } catch (error) {
+    // Ignore storage errors to keep the app usable in restricted browsers.
+  }
+}
+
+function loadStudentProfile() {
+  const stored = readStorageJSON(PROFILE_STORAGE_KEY, null);
+  if (!stored || typeof stored !== "object") {
+    return;
+  }
+
+  studentProfile = {
+    gpa: typeof stored.gpa === "number" ? stored.gpa : null,
+    sat: Number.isInteger(stored.sat) ? stored.sat : null,
+    act: Number.isInteger(stored.act) ? stored.act : null,
+    budget: Number.isInteger(stored.budget) ? stored.budget : null,
+    preferredState: typeof stored.preferredState === "string" ? stored.preferredState : "",
+    preferredType: typeof stored.preferredType === "string" ? stored.preferredType : "",
+    maxNetPrice: Number.isInteger(stored.maxNetPrice) ? stored.maxNetPrice : null,
+  };
+}
+
+function persistSavedColleges() {
+  try {
+    const rows = Array.from(savedColleges.values());
+    window.localStorage.setItem(SAVED_COLLEGES_STORAGE_KEY, JSON.stringify(rows));
+  } catch (error) {
+    // Ignore storage errors to keep the app usable in restricted browsers.
+  }
+}
+
+function loadSavedColleges() {
+  const rows = readStorageJSON(SAVED_COLLEGES_STORAGE_KEY, []);
+  if (!Array.isArray(rows)) {
+    return;
+  }
+
+  const next = new Map();
+  for (const row of rows) {
+    if (!row || typeof row !== "object" || typeof row.id !== "string" || !row.id) {
+      continue;
+    }
+
+    next.set(row.id, {
+      id: row.id,
+      name: typeof row.name === "string" ? row.name : row.id,
+      state: typeof row.state === "string" ? row.state : "N/A",
+      type: typeof row.type === "string" ? row.type : "Unknown",
+      averageNetPrice: typeof row.averageNetPrice === "number" ? row.averageNetPrice : null,
+      acceptanceRate: typeof row.acceptanceRate === "number" ? row.acceptanceRate : null,
+    });
+  }
+
+  savedColleges = next;
+}
+
+function updateSavedCollegeSnapshot(college) {
+  if (!college || !college.id || !savedColleges.has(college.id)) {
+    return;
+  }
+
+  savedColleges.set(college.id, {
+    id: college.id,
+    name: college.name,
+    state: college.state,
+    type: college.type,
+    averageNetPrice: typeof college.averageNetPrice === "number" ? college.averageNetPrice : null,
+    acceptanceRate: typeof college.acceptanceRate === "number" ? college.acceptanceRate : null,
+  });
+  persistSavedColleges();
+}
+
+function isSavedCollege(id) {
+  return savedColleges.has(id);
+}
+
+function toggleSavedCollege(id) {
+  const college = searchResults.find((item) => item.id === id);
+
+  if (savedColleges.has(id)) {
+    savedColleges.delete(id);
+    persistSavedColleges();
+    renderSavedColleges();
+    renderResults();
+    return;
+  }
+
+  if (!college) {
+    return;
+  }
+
+  savedColleges.set(id, {
+    id: college.id,
+    name: college.name,
+    state: college.state,
+    type: college.type,
+    averageNetPrice: typeof college.averageNetPrice === "number" ? college.averageNetPrice : null,
+    acceptanceRate: typeof college.acceptanceRate === "number" ? college.acceptanceRate : null,
+  });
+  persistSavedColleges();
+  renderSavedColleges();
+  renderResults();
+}
+
+async function openSavedCollege(id) {
+  const existing = searchResults.find((item) => item.id === id);
+  if (existing) {
+    activeCollegeId = id;
+    renderResults();
+    return;
+  }
+
+  try {
+    const response = await fetch(`${API_BASE}/${encodeURIComponent(id)}`);
+    if (!response.ok) {
+      throw new Error(`Fetch failed (${response.status})`);
+    }
+
+    const payload = await response.json();
+    if (!payload || !payload.college) {
+      throw new Error("College payload missing");
+    }
+
+    const college = payload.college;
+    searchResults = [college, ...searchResults.filter((item) => item.id !== college.id)];
+    activeCollegeId = college.id;
+    updateSavedCollegeSnapshot(college);
+    renderResults();
+  } catch (error) {
+    el.statusText.textContent = "Could not load saved college details right now.";
+  }
+}
+
+function renderSavedColleges() {
+  if (!el.savedPanel) {
+    return;
+  }
+
+  const rows = Array.from(savedColleges.values());
+  if (rows.length === 0) {
+    el.savedPanel.innerHTML = "<p class='status'>No saved colleges yet. Click Save on any result card.</p>";
+    return;
+  }
+
+  el.savedPanel.innerHTML = rows
+    .map((college) => `
+      <article class="school-row" data-saved-id="${college.id}">
+        <div>
+          <h3>${college.name}</h3>
+          <p class="meta">${college.type} • ${college.state}</p>
+          <div class="metrics">
+            <span class="badge">Acceptance: ${formatPercent(college.acceptanceRate)}</span>
+            <span class="badge">Net Price: ${formatCurrency(college.averageNetPrice)}</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:0.5rem; align-items:flex-start;">
+          <button class="compare-btn saved-open-btn" data-id="${college.id}">Open</button>
+          <button class="compare-btn saved-remove-btn" data-id="${college.id}">Remove</button>
+        </div>
+      </article>`)
+    .join("");
+
+  for (const button of el.savedPanel.querySelectorAll(".saved-open-btn")) {
+    button.addEventListener("click", () => {
+      const id = button.getAttribute("data-id");
+      if (!id) {
+        return;
+      }
+      openSavedCollege(id);
+    });
+  }
+
+  for (const button of el.savedPanel.querySelectorAll(".saved-remove-btn")) {
+    button.addEventListener("click", () => {
+      const id = button.getAttribute("data-id");
+      if (!id) {
+        return;
+      }
+      toggleSavedCollege(id);
+    });
+  }
+}
 
 function formatPercent(value) {
   if (typeof value !== "number") {
@@ -213,6 +415,7 @@ function saveQuizProfile() {
     maxNetPrice: toInt(el.quizMaxNetPrice.value),
   };
 
+  persistStudentProfile();
   renderProfileSummary();
   closeQuizModal();
   searchColleges();
@@ -229,8 +432,12 @@ async function searchColleges() {
 
     const payload = await response.json();
     searchResults = Array.isArray(payload.results) ? payload.results : [];
+    for (const college of searchResults) {
+      updateSavedCollegeSnapshot(college);
+    }
     dataLastRefreshed = payload.dataLastRefreshed || "";
     renderResults();
+    renderSavedColleges();
     const source = payload.source ? ` Source: ${payload.source}.` : "";
     const refreshed = dataLastRefreshed ? ` Last refreshed: ${formatRefreshTime(dataLastRefreshed)}.` : "";
     const cacheNote = payload.cache && payload.cache.hit ? " Cached result." : "";
@@ -272,16 +479,21 @@ function renderResults() {
             ${dataLastRefreshed ? `<span class="badge">Data refreshed: ${formatRefreshTime(dataLastRefreshed)}</span>` : ""}
           </div>
         </div>
-        <button class="compare-btn" data-id="${college.id}" ${disabled ? "disabled" : ""}>
-          ${selected ? "Remove" : "Compare"}
-        </button>
+        <div style="display:flex; gap:0.5rem; align-items:flex-start;">
+          <button class="compare-btn" data-id="${college.id}" ${disabled ? "disabled" : ""}>
+            ${selected ? "Remove" : "Compare"}
+          </button>
+          <button class="compare-btn save-btn" data-save-id="${college.id}">
+            ${isSavedCollege(college.id) ? "Saved" : "Save"}
+          </button>
+        </div>
       </article>`;
     })
     .join("");
 
   for (const card of el.resultsList.querySelectorAll(".school-row")) {
     card.addEventListener("click", (event) => {
-      if (event.target instanceof Element && event.target.closest(".compare-btn")) {
+      if (event.target instanceof Element && event.target.closest(".compare-btn, .save-btn")) {
         return;
       }
       activeCollegeId = card.getAttribute("data-card-id");
@@ -291,9 +503,22 @@ function renderResults() {
   }
 
   for (const button of el.resultsList.querySelectorAll(".compare-btn")) {
+    if (button.classList.contains("save-btn")) {
+      continue;
+    }
     button.addEventListener("click", () => {
       const id = button.getAttribute("data-id");
       toggleSelection(id);
+    });
+  }
+
+  for (const button of el.resultsList.querySelectorAll(".save-btn")) {
+    button.addEventListener("click", () => {
+      const id = button.getAttribute("data-save-id");
+      if (!id) {
+        return;
+      }
+      toggleSavedCollege(id);
     });
   }
 
@@ -590,6 +815,9 @@ if (el.quizSaveBtn) {
   el.quizSaveBtn.addEventListener("click", saveQuizProfile);
 }
 
+loadStudentProfile();
+loadSavedColleges();
 renderProfileSummary();
+renderSavedColleges();
 
 searchColleges();
